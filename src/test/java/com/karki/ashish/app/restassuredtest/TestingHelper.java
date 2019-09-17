@@ -10,6 +10,14 @@ import java.util.Map;
  * @description contains commonly used properties and setup methods
  */
 public class TestingHelper {
+	
+	public static final int ID_LENGTHS = 30; // as set in the "mobile-app-ws" project
+	public static final String BASE_URI = "http://localhost";
+	public static final int PORT = 8080;
+	public static final String CONTEXT_PATH = "/spring-boot-app";
+	public static final String EMAIL_ADDRESS = "newmail6181=08@gmail.com";
+	public static final String ACCOUNT_PW = "123"; // the password used to log into our system (not gmail)
+	public static final String JSON_CONTENT = "application/json";
 
 	public static Map<String, Object> getJsonBodyForCreateUser() {
 		List<Map<String, Object>> userAddresses = new ArrayList<>();
@@ -34,10 +42,18 @@ public class TestingHelper {
 		Map<String, Object> userDetails = new HashMap<>();
 		userDetails.put("firstName", "John");
 		userDetails.put("lastName", "Doe");
-		userDetails.put("email", "newmail6181=07@gmail.com");
-		userDetails.put("password", "123");
+		userDetails.put("email", EMAIL_ADDRESS);
+		userDetails.put("password", ACCOUNT_PW);
 		userDetails.put("addresses", userAddresses);
 
 		return userDetails;
+	}
+	
+	public static Map<String, String> getLoginDetailsJsonbody() {
+		Map<String, String> loginCredentials = new HashMap<String, String>();
+		loginCredentials.put("email", EMAIL_ADDRESS);
+		loginCredentials.put("password", ACCOUNT_PW);
+		
+		return loginCredentials;
 	}
 }
