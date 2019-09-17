@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,7 @@ import org.junit.runners.MethodSorters;
 import com.karki.ashish.app.restassuredtest.TestingHelper;
 
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 
@@ -28,6 +30,7 @@ class TestUsersWebServiceEndpoint {
 	private static String userEmail;
 	private static String firstName;
 	private static String lastName;
+	private static List<Map<String, String>> extractedAddresses;
 
 	@BeforeEach
 	void setUp() throws Exception {
@@ -79,8 +82,8 @@ class TestUsersWebServiceEndpoint {
 		userEmail = jsonPath.getString("email");
 		firstName = jsonPath.getString("firstName");
 		lastName = jsonPath.getString("lastName");
-		List<Map<String, String>> addresses = jsonPath.getList("addresses");
-		String firstAddressId = addresses.get(0).get("addressId");
+		extractedAddresses = jsonPath.getList("addresses");
+		String firstAddressId = extractedAddresses.get(0).get("addressId");
 		
 		assertNotNull(userPublcId);
 		assertNotNull(userEmail);
@@ -88,8 +91,68 @@ class TestUsersWebServiceEndpoint {
 		assertNotNull(lastName);
 		assertEquals(TestingHelper.EMAIL_ADDRESS, userEmail);
 		
-		assertTrue(addresses.size() == 2);
+		assertTrue(extractedAddresses.size() == 2);
 		assertTrue(firstAddressId.length() == TestingHelper.ID_LENGTHS);
 	}
-
+	
+	/**
+	 * actual method name: testUpdateUserDetails()
+	 */
+	@Test
+	final void c() {
+		Map<String, String> userDetailsMap = new HashMap<String, String>();
+		userDetailsMap.put("firstName", "Bandar");
+		userDetailsMap.put("lastName", "Kumar chaudhary");
+		
+		Response response = given()
+		.contentType(TestingHelper.JSON_CONTENT)
+		.accept(TestingHelper.JSON_CONTENT)
+		.header("Authorization", authorizationHeader)
+		.pathParam("id", userId)
+		.body(userDetailsMap)
+		.when()
+		.put(TestingHelper.CONTEXT_PATH + "/users/{id}")
+		.then()
+		//.statusCode(200)
+		.contentType(TestingHelper.JSON_CONTENT)
+		.extract()
+		.response();
+		
+		// verify the response object has the things we wanted to update
+		final JsonPath jsonPath = response.jsonPath();
+		final String fName = jsonPath.getString("firstName");
+		final String lName = jsonPath.getString("lastName");
+		List<Map<String, String>> updatedAddressList = jsonPath.getList("addresses");
+		
+		// assertions
+		assertNotNull(fName);
+		assertNotNull(lName);
+		assertNotNull(updatedAddressList);
+		
+		assertTrue(extractedAddresses.size() == updatedAddressList.size());
+		assertEquals(extractedAddresses.get(0).get("streetName"), updatedAddressList.get(0).get("streetName"));
+	}
+	
+	/**
+	 * actual method name: testDeleteUserDetails()
+	 */
+	@Test
+	final void d() {
+		Response response =  given()
+		.header("Authorization", authorizationHeader)
+		.accept(TestingHelper.JSON_CONTENT)
+		.pathParam("id", userId)
+		.when()
+		.delete(TestingHelper.CONTEXT_PATH + "/users/{id}")
+		.then()
+		//.statusCode(200)
+		.contentType(TestingHelper.JSON_CONTENT)
+		.extract()
+		.response();
+		
+		JsonPath jsonPath = response.jsonPath();
+		
+		final String operationResult = jsonPath.getString("operationResult");
+		assertEquals("SUCCESS", operationResult);
+	}
 }
